@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>留言记录</title>
+<style>body{font-family:Arial,sans-serif;font-size:14px;margin:0;padding:10px;background-color:#aacf53;animation:fadeIn 1s ease-in-out;}@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}h1{text-align:center;color:#333;}.records-container{width:100%;margin-top:20px;}.record-item{display:flex;align-items:flex-start;margin-bottom:15px;padding:10px;border:1px solid #ccc;border-radius:5px;background-color:#fff;}.record-date{width:120px;font-weight:bold;color:#555;}.record-message{flex:1;margin-left:10px;}.record-item:hover{background-color:#f0f0f0;cursor:pointer;}.back-button{display:block;margin:20px auto;padding:10px 20px;font-size:16px;background-color:#dcd6d9;color:#000;border:none;border-radius:5px;cursor:pointer;transition:transform 0.2s ease-in-out;}.back-button:hover{transform:scale(1.05);}.back-button:active{transform:scale(0.95);}</style>
+</head>
+<body>
+<h1>留言记录</h1>
+<div class="records-container" id="records-container"></div>
+<button class="back-button" onclick="goBack()">返回留言板</button>
+<script>window.onload =function () {loadRecords();};function loadRecords() {var records =JSON.parse(localStorage.getItem("messageRecords")) ||[];var container =document.getElementById("records-container");if (records.length ===0) {container.innerHTML ="<p>暂无留言记录。</p>";return;}
+var html ="";records.forEach(function (record,index) {html +=`
+
+                    <div class="record-item" onclick="handleRecordClick(${index})">
+
+                        <div class="record-date">${record.date}</div>
+
+                        <div class="record-message">${record.message}</div>
+
+                    </div>
+
+                `;});container.innerHTML =html;}
+function handleRecordClick(index) {if (confirm("确定要删除这条留言吗？")) {deleteRecord(index);}
+}
+function deleteRecord(index) {var records =JSON.parse(localStorage.getItem("messageRecords")) ||[];records.splice(index,1);localStorage.setItem("messageRecords",JSON.stringify(records));loadRecords();alert("留言已删除！");}
+function goBack() {window.location.href ="index.html";}
+</script>
+</body>
+</html>

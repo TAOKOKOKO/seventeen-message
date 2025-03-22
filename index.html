@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>十七岁的留言树洞</title>
+
+    <style>
+
+        body {
+
+            font-family: Arial, sans-serif;
+
+            font-size: 14px;
+
+            margin: 0;
+
+            padding: 0;
+
+            background-color: #aacf53; /* 整体背景颜色 */
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            height: 100vh;
+
+            overflow: hidden; /* 隐藏超出部分 */
+
+            position: relative;
+
+            animation: fadeIn 1s ease-in-out; /* 页面加载时的淡入效果 */
+
+        }
+
+        @keyframes fadeIn {
+
+            from { opacity: 0; }
+
+            to { opacity: 1; }
+
+        }
+
+        h1 {
+
+            text-align: center;
+
+            color: #333;
+
+        }
+
+        .message-board {
+
+            width: 300px; /* 留言板宽度 */
+
+            padding: 20px;
+
+            border: 1px solid rgba(255, 255, 255, 0.2); /* 半透明边框 */
+
+            border-radius: 50% / 20%; /* 竖着的椭圆形 */
+
+            background-color: rgba(255, 255, 255, 0.5); /* 半透明背景 */
+
+            backdrop-filter: blur(10px); /* 高斯模糊效果 */
+
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+
+            animation: slideIn 0.5s ease-in-out; /* 留言板滑动效果 */
+
+            position: relative;
+
+            z-index: 1; /* 确保留言板在背景之上 */
+
+        }
+
+        @keyframes slideIn {
+
+            from { transform: translateY(-20px); opacity: 0; }
+
+            to { transform: translateY(0); opacity: 1; }
+
+        }
+
+        textarea {
+
+            width: 100%; /* 输入框宽度与留言板相适应 */
+
+            height: 100px;
+
+            margin-bottom: 10px;
+
+            padding: 10px;
+
+            border: 1px solid rgba(0, 0, 0, 0.1); /* 半透明边框 */
+
+            border-radius: 5px;
+
+            font-size: 14px;
+
+            box-sizing: border-box; /* 防止输入框超出留言板 */
+
+            background-color: rgba(255, 255, 255, 0.8); /* 半透明背景 */
+
+            backdrop-filter: blur(5px); /* 高斯模糊效果 */
+
+        }
+
+        .button-container {
+
+            display: flex;
+
+            justify-content: center; /* 按钮居中排列 */
+
+            gap: 10px; /* 按钮之间的间距 */
+
+        }
+
+        button {
+
+            padding: 8px 16px;
+
+            font-size: 14px;
+
+            border: none;
+
+            border-radius: 5px;
+
+            background-color: rgba(220, 214, 217, 0.8); /* 半透明背景 */
+
+            color: #000; /* 按钮字体颜色 */
+
+            cursor: pointer;
+
+            transition: transform 0.2s ease-in-out; /* 按钮点击时的缩放效果 */
+
+            backdrop-filter: blur(5px); /* 高斯模糊效果 */
+
+        }
+
+        button:hover {
+
+            transform: scale(1.05); /* 鼠标悬停时放大按钮 */
+
+        }
+
+        button:active {
+
+            transform: scale(0.95); /* 点击时缩小按钮 */
+
+        }
+
+        /* 背景中的 🍀 动画 */
+
+        .leaf {
+
+            position: absolute;
+
+            font-size: 24px;
+
+            animation: spiral 10s linear infinite; /* 运动速度变慢 */
+
+            z-index: 0; /* 确保 🍀 在背景中显示 */
+
+            cursor: pointer; /* 鼠标悬停时显示手型 */
+
+        }
+
+        @keyframes spiral {
+
+            0% {
+
+                transform: translateY(100vh) translateX(-50vw) rotate(0deg);
+
+            }
+
+            100% {
+
+                transform: translateY(-100vh) translateX(50vw) rotate(720deg);
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- 背景中的 🍀 -->
+
+    <div id="leaf-container"></div>
+
+    <!-- 留言板 -->
+
+    <div class="message-board">
+
+        <h1>十七岁的留言树洞</h1>
+
+        <textarea id="message" placeholder="ᯠ_   ̫ _ᯄ"></textarea>
+
+        <div class="button-container">
+
+            <button onclick="saveMessage()">保存留言</button>
+
+            <button onclick="viewRecords()">留言记录</button>
+
+        </div>
+
+        <div id="saved-messages"></div>
+
+    </div>
+
+    <!-- 引入 Firebase SDK -->
+
+    <script type="module">
+
+        // 导入 Firebase 模块
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // Firebase 配置
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyCXnOTpm0ixQQN1rzIIRGFXLM9pLs42IGM",
+
+            authDomain: "message-board-a8c2e.firebaseapp.com",
+
+            projectId: "message-board-a8c2e",
+
+            storageBucket: "message-board-a8c2e.firebasestorage.app",
+
+            messagingSenderId: "99884652710",
+
+            appId: "1:99884652710:web:ab314b0ef6a92565087c67",
+
+            measurementId: "G-84E6C58848"
+
+        };
+
+        // 初始化 Firebase
+
+        const app = initializeApp(firebaseConfig);
+
+        const db = getFirestore(app);
+
+        // 保存留言
+
+        async function saveMessage() {
+
+            const message = document.getElementById("message").value;
+
+            if (message.trim() === "") {
+
+                alert("留言不能为空！");
+
+                return;
+
+            }
+
+            const date = new Date().toLocaleString();
+
+            // 将留言保存到 Firestore
+
+            await addDoc(collection(db, "messages"), { message, date });
+
+            alert("留言已保存！");
+
+            document.getElementById("message").value = ""; // 清空输入框
+
+            loadMessages(); // 刷新留言记录
+
+        }
+
+        // 加载留言记录
+
+        async function loadMessages() {
+
+            const messagesContainer = document.getElementById("saved-messages");
+
+            messagesContainer.innerHTML = ""; // 清空现有内容
+
+            const querySnapshot = await getDocs(collection(db, "messages"));
+
+            querySnapshot.forEach(doc => {
+
+                const messageData = doc.data();
+
+                const messageElement = document.createElement("div");
+
+                messageElement.textContent = `${messageData.date}: ${messageData.message}`;
+
+                messagesContainer.appendChild(messageElement);
+
+            });
+
+        }
+
+        // 页面加载时加载留言记录
+
+        window.onload = loadMessages;
+
+        // 生成随机位置的 🍀
+
+        function createLeaves() {
+
+            var leafContainer = document.getElementById("leaf-container");
+
+            for (var i = 0; i < 15; i++) {
+
+                var leaf = document.createElement("div");
+
+                leaf.className = "leaf";
+
+                leaf.innerHTML = "🍀";
+
+                // 随机大小（24px 到 48px）
+
+                var size = Math.random() * 24 + 24;
+
+                leaf.style.fontSize = size + "px";
+
+                // 随机水平位置
+
+                leaf.style.left = Math.random() * 100 + "vw";
+
+                // 随机动画延迟
+
+                leaf.style.animationDelay = Math.random() * 5 + "s";
+
+                // 点击 🍀 后停住一秒并消失
+
+                leaf.addEventListener("click", function () {
+
+                    this.style.animationPlayState = "paused"; // 暂停动画
+
+                    setTimeout(() => {
+
+                        this.remove(); // 一秒后消失
+
+                    }, 1000);
+
+                });
+
+                leafContainer.appendChild(leaf);
+
+            }
+
+        }
+
+        // 初始化 🍀
+
+        createLeaves();
+
+    </script>
+
+</body>
+
+</html>
